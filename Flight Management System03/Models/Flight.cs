@@ -18,7 +18,7 @@ namespace Flight_Management_System03.Models
         public string departureDate { get; set; } //user input
         public string departureTime { get; set; } //user input
         public decimal ticketPrice { get; set; } //user input
-        public int availableSeats { get; set; }//user input
+        public int availableSeats { get; set; }//calculated from totalSeats(aircraftId)
 
         public string status { get; set; } //default value, Flight status: Scheduled | Departed | Cancelled
 

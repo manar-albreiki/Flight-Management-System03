@@ -12,7 +12,6 @@ namespace Flight_Management_System03.Models
         public string flightCode { get; set; } //generated system
         public int aircraftId { get; set; } //user input from the list
         public int pilotId { get; set; }//user input from the list
-
         public string origin { get; set; } //user input
         public string destination { get; set; } //user input
         public string departureDate { get; set; } //user input
@@ -22,5 +21,6 @@ namespace Flight_Management_System03.Models
 
         public string status { get; set; } //default value, Flight status: Scheduled | Departed | Cancelled
 
+        public double flightDuration { get; set; } //user input
     }
 }

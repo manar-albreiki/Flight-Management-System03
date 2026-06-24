@@ -28,7 +28,13 @@ namespace Flight_Management_System03
             string passengerPhone = Console.ReadLine();
 
             Console.WriteLine("Enter passport Number ");
-            string passportNumber = Console.ReadLine();
+            string enteredPassportNumber = Console.ReadLine();
+            bool unique = context.Passengers.Any(a => a.passportNumber == enteredPassportNumber);
+            if (unique==true)
+            {
+                Console.WriteLine("The passport Number already used, please try again ");
+                return;
+            }
 
             Console.WriteLine("Enter your nationality ");
             string nationality = Console.ReadLine();
@@ -39,10 +45,10 @@ namespace Flight_Management_System03
                 passengerName= passengerName,
                 passengerEmail= passengerEmail,
                 passengerPhone= passengerPhone,
-                passportNumber= passportNumber,
+                passportNumber= enteredPassportNumber,
                 nationality= nationality
             });
-            Console.WriteLine($"Passenger registered successfully. Assigned ID: {passengerId}");
+            Console.WriteLine($"Passenger registered successfully, with ID: {passengerId}");
         }
 
         //02 Add an Aircraft
@@ -63,7 +69,104 @@ namespace Flight_Management_System03
                 totalSeats= totalSeats,
                 isOperational=true
             });
-            Console.WriteLine($"Aircrafts added successfully to the system . Assigned ID: {aircraftId}");
+            Console.WriteLine($"Aircrafts added successfully to the system, with ID: {aircraftId}");
+        }
+
+        //03 Register a Pilot
+        public static void RegisterPilot()
+        {
+            int pilotId = context.Pilots.Count + 1;
+
+            Console.WriteLine("Enter pilot Name");
+            string pilotName = Console.ReadLine();
+
+            Console.WriteLine("Enter pilot Phone");
+            string pilotPhone = Console.ReadLine();
+
+            Console.WriteLine("Enter license Number");
+            string licenseNumber = Console.ReadLine();
+
+            context.Pilots.Add(new Pilot
+            {
+                pilotId= pilotId,
+                pilotName= pilotName,
+                pilotPhone= pilotPhone,
+                licenseNumber= licenseNumber,
+                flightHours=0,
+                isAvailable=true
+            });
+            Console.WriteLine($"pilot registered successfully, with ID: {pilotId}");
+        }
+
+        //04 View All Flights
+        public static void ViewAllFlight()
+        {
+            Console.WriteLine("===== All scheduled flight =====");
+
+            foreach (Flight f in context.Flights)
+            {
+                Console.WriteLine("flight code : " + f.flightCode);
+                Console.WriteLine("origin : " + f.origin);
+                Console.WriteLine("destination : " + f.destination);
+                Console.WriteLine("departure date : " + f.departureDate);
+                Console.WriteLine("departure time : " + f.departureTime);
+                Console.WriteLine("available seats : " + f.availableSeats);
+                Console.WriteLine("ticket price : " + f.ticketPrice);
+                Console.WriteLine("current status : " + f.status);
+            }
+        }
+
+        //05 Schedule a Flight
+        public static void SchedulFlight()
+        {
+            //generate flight id
+            int flightId = context.Flights.Count + 1;
+
+            //display all available operational Aircraft --choose from it 
+
+            List<bool> choosenAircraft = context.Aircrafts.Select(a => a.isOperational == true)
+                                                          .ToList();
+            foreach(Aircraft a in context.Aircrafts)
+            {
+                Console.WriteLine("aircraftId : " + a.aircraftId);
+                Console.WriteLine("aircraft model : " + a.model);
+                Console.WriteLine("aircraft totalSeats : " + a.totalSeats);
+            }
+
+            Console.WriteLine("Enter ID for choosen aircraft");
+            int choosenAircraftId = int.Parse(Console.ReadLine());
+
+            bool choiceAircraft = context.Aircrafts.Any(a => a.aircraftId == choosenAircraftId);
+            if (choiceAircraft == false)
+            {
+                Console.WriteLine("no aircraft found with id");
+                return;
+            }
+
+            //display all available pilot --choose from it
+            List<bool> choosenPilot = context.Pilots.Select(a => a.isAvailable == true)
+                                              .ToList();
+            foreach (Pilot p in context.Pilots)
+            {
+                Console.WriteLine("pilotId: "+p.pilotId+ " | pilotName : "+p.pilotName);
+            }
+
+
+            Console.WriteLine("Enter assigned  pilotId for the flight");
+            int choosenPilotId = int.Parse(Console.ReadLine());
+
+            bool choicePilot = context.Aircrafts.Any(a => a.aircraftId == choosenAircraftId);
+            if (choicePilot == false)
+            {
+                Console.WriteLine("no pilot found with id");
+                return;
+            }
+
+            // create the flight record
+         
+
+
+
         }
 
 

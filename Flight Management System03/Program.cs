@@ -327,6 +327,43 @@ namespace Flight_Management_System03
 
         }
 
+        //08 Depart a Flight
+        //display all flight with ststus =Scheduled
+
+        public static void DepartFlight()
+        {
+            List<Flight> scheduledFlights = context.Flights.Where(a => a.status == "Scheduled").ToList();
+            if (scheduledFlights.Count == 0)
+            {
+                Console.WriteLine("There is no scheduled Flights");
+                return;
+            }
+            foreach (Flight f in scheduledFlights)
+            {
+                Console.WriteLine("flightId: "+ f.flightId);
+                Console.WriteLine("flightCode: " + f.flightCode);
+            }
+            
+            Console.WriteLine("Enter flight Id to chance ststus");
+            int flightId = int.Parse(Console.ReadLine());
+
+            Flight enteredFlightId = context.Flights.FirstOrDefault(d => d.flightId == flightId);
+
+            if (enteredFlightId == null)
+            {
+                Console.WriteLine("invaled Flight Id");
+                return;
+            }
+            enteredFlightId.status = "Departed";
+
+
+        }
+
+
+
+
+
+
         static void Main(string[] args)
         {
             bool exit = false;

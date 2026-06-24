@@ -119,14 +119,12 @@ namespace Flight_Management_System03
         //05 Schedule a Flight
         public static void SchedulFlight()
         {
-            //generate flight id
-            int flightId = context.Flights.Count + 1;
-
+    
             //display all available operational Aircraft --choose from it 
 
-            List<bool> choosenAircraft = context.Aircrafts.Select(a => a.isOperational == true)
+            List<Aircraft> choosenAircraft = context.Aircrafts.Where(a => a.isOperational == true)
                                                           .ToList();
-            foreach(Aircraft a in context.Aircrafts)
+            foreach(Aircraft a in choosenAircraft)
             {
                 Console.WriteLine("aircraftId : " + a.aircraftId);
                 Console.WriteLine("aircraft model : " + a.model);
@@ -144,9 +142,9 @@ namespace Flight_Management_System03
             }
 
             //display all available pilot --choose from it
-            List<bool> choosenPilot = context.Pilots.Select(a => a.isAvailable == true)
+            List<Pilot> choosenPilot = context.Pilots.Where(a => a.isAvailable == true)
                                               .ToList();
-            foreach (Pilot p in context.Pilots)
+            foreach (Pilot p in choosenPilot)
             {
                 Console.WriteLine("pilotId: "+p.pilotId+ " | pilotName : "+p.pilotName);
             }
@@ -163,12 +161,171 @@ namespace Flight_Management_System03
             }
 
             // create the flight record
-         
+
+            int flightId = context.Flights.Count + 1;
+
+            string flightCode = "OA"+ (context.Flights.Count + 1);
 
 
+            Console.WriteLine("Enter  Departure airport / city");
+            string origin = Console.ReadLine();
+
+            Console.WriteLine("Enter  Arrival airport / city");
+            string destination = Console.ReadLine();
+
+            Console.WriteLine("Enter  departure Date");
+            string departureDate = Console.ReadLine();
+
+            Console.WriteLine("Enter  departure Time");
+            string departureTime = Console.ReadLine();
+
+            Console.WriteLine("Enter  ticket Price");
+            decimal ticketPrice = decimal.Parse(Console.ReadLine());
+
+            Console.WriteLine("Enter  flight Duration");
+            int flightDuration = int.Parse(Console.ReadLine());
+
+            Aircraft seats = context.Aircrafts.FirstOrDefault(t => t.aircraftId == choosenAircraftId);
+            if (seats == null)
+            {
+                Console.WriteLine("No available seats");
+                return;
+            }
+            context.Flights.Add(new Flight
+            {
+                flightId= flightId,
+                flightCode= flightCode,
+                aircraftId= choosenAircraftId,
+                pilotId= choosenPilotId,
+                origin = origin,
+                destination = destination,
+                departureDate= departureDate,
+                departureTime= departureTime,
+                ticketPrice= ticketPrice,
+                flightDuration= flightDuration,
+                availableSeats= seats.totalSeats,
+                status= "Scheduled"
+            });
+            Console.WriteLine("The flight added successfully  , with ID: " + flightId);
 
         }
 
+        //06 Book a Flight
+        public static void BookFlight()
+        {
+            Console.WriteLine("Enter passenger ID");
+            int passengerId = int.Parse(Console.ReadLine());
+
+            Passenger selectPassenger = context.Passengers.FirstOrDefault(a => a.passengerId == passengerId);
+
+            if (selectPassenger == null)
+            {
+                Console.WriteLine("Passenger not found");
+                return;
+            }
+
+            //choose a destination
+            Console.WriteLine("Enter the Destinations");
+            string enterDestination = Console.ReadLine();
+
+            List<Flight> availabeDestinations = context.Flights.Where(a => a.status == "Scheduled" && a.destination == enterDestination && a.availableSeats > 0)
+                                                         .ToList();
+
+            if (availabeDestinations == null)
+            {
+                Console.WriteLine("Destinations not found or seats not available");
+                return;
+            }
+
+            Console.WriteLine("===Availabe Destinations===");
+            foreach (Flight f in availabeDestinations)
+            {
+                Console.WriteLine("flightId: "+ f.flightId + "|destination: "+f.destination+ "|availableSeats: "+f.availableSeats); 
+            }
+
+            Console.WriteLine("Enter the flightId that you want to booked");
+            int bookedFlightId = int.Parse(Console.ReadLine());
+
+            Flight selectedFlight = context.Flights.FirstOrDefault(a => a.flightId == bookedFlightId);
+            if (selectedFlight == null)
+            {
+                Console.WriteLine("flight not found");
+                return;
+            }
+
+            //create booking
+            int bookingId = context.Bookings.Count + 1;
+
+            string seatNumber = "A" + (context.Bookings.Count + 1);
+
+            Console.WriteLine("Enter booking Date");
+            string bookingDate = Console.ReadLine();
+
+            context.Bookings.Add(new Booking
+            {
+                bookingId= bookingId,
+                passengerId= passengerId,
+                flightId= bookedFlightId,
+                seatNumber= seatNumber,
+                bookingDate= bookingDate,
+                totalPrice= selectedFlight.ticketPrice,
+                status= "Confirmed"
+
+            });
+            selectedFlight.availableSeats = selectedFlight.availableSeats - 1;
+
+            Console.WriteLine("The booking added successfully  , with ID: " + bookingId);
+
+        }
+
+        //07 Cancel a Booking
+        public static void CancelBooking()
+        {
+            //
+            Console.WriteLine("Enter passenger ID");
+            int passengerId = int.Parse(Console.ReadLine());
+
+            Passenger selectPassenger = context.Passengers.FirstOrDefault(a => a.passengerId == passengerId);
+
+            if (selectPassenger == null)
+            {
+                Console.WriteLine("Passenger not found");
+                return;
+            }
+
+            // The booking is located
+            Console.WriteLine("Enter bookingId that you would cancelled");
+            int bookingId = int.Parse(Console.ReadLine());
+
+            Booking selectedBooking = context.Bookings.FirstOrDefault(a => a.bookingId == bookingId);
+
+            if (selectedBooking == null)
+            {
+                Console.WriteLine("Booking not found");
+                return;
+            }
+
+            //status is set to Cancelled,
+            selectedBooking.status = "Cancelled";
+
+            //the seat is returned to the flight so another passenger can book it.
+
+            Console.WriteLine("Enter flightId that you would cancelled");
+            int flightId = int.Parse(Console.ReadLine());
+
+            Flight selectedFlight = context.Flights.FirstOrDefault(a => a.flightId == flightId);
+
+            if (selectedFlight == null)
+            {
+                Console.WriteLine("Flight not found");
+                return;
+            }
+
+            selectedFlight.availableSeats = selectedFlight.availableSeats + 1;
+
+            Console.WriteLine("The booking cancelled successfully" );
+
+        }
 
         static void Main(string[] args)
         {

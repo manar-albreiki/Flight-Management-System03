@@ -21,6 +21,6 @@ namespace Flight_Management_System03.Models
 
         public string status { get; set; } //default value, Flight status: Scheduled | Departed | Cancelled
 
-        public double flightDuration { get; set; } //user input
+        public int flightDuration { get; set; } //user input
     }
 }

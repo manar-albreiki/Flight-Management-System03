@@ -1,4 +1,5 @@
 ﻿using Flight_Management_System03.Models;
+using System.Threading.Channels;
 
 namespace Flight_Management_System03
 {
@@ -134,6 +135,8 @@ namespace Flight_Management_System03
             Console.WriteLine("Enter ID for choosen aircraft");
             int choosenAircraftId = int.Parse(Console.ReadLine());
 
+
+           
             bool choiceAircraft = context.Aircrafts.Any(a => a.aircraftId == choosenAircraftId);
             if (choiceAircraft == false)
             {
@@ -153,12 +156,14 @@ namespace Flight_Management_System03
             Console.WriteLine("Enter assigned  pilotId for the flight");
             int choosenPilotId = int.Parse(Console.ReadLine());
 
-            bool choicePilot = context.Aircrafts.Any(a => a.aircraftId == choosenAircraftId);
-            if (choicePilot == false)
+            Pilot choicePilot = context.Pilots.FirstOrDefault(a => a.pilotId == choosenPilotId);
+
+            if (choicePilot == null)
             {
-                Console.WriteLine("no pilot found with id");
+                Console.WriteLine("invalied pilot id");
                 return;
             }
+            choicePilot.isAvailable = false;
 
             // create the flight record
 
@@ -206,6 +211,7 @@ namespace Flight_Management_System03
                 availableSeats= seats.totalSeats,
                 status= "Scheduled"
             });
+            
             Console.WriteLine("The flight added successfully  , with ID: " + flightId);
 
         }
@@ -228,10 +234,12 @@ namespace Flight_Management_System03
             Console.WriteLine("Enter the Destinations");
             string enterDestination = Console.ReadLine();
 
-            List<Flight> availabeDestinations = context.Flights.Where(a => a.status == "Scheduled" && a.destination == enterDestination && a.availableSeats > 0)
-                                                         .ToList();
+            List<Flight> availabeDestinations = context.Flights.Where(a => a.status == "Scheduled" 
+                                                                      && a.destination == enterDestination 
+                                                                      && a.availableSeats > 0)
+                                                               .ToList();
 
-            if (availabeDestinations == null)
+            if (availabeDestinations.Count == 0)
             {
                 Console.WriteLine("Destinations not found or seats not available");
                 return;
@@ -243,10 +251,12 @@ namespace Flight_Management_System03
                 Console.WriteLine("flightId: "+ f.flightId + "|destination: "+f.destination+ "|availableSeats: "+f.availableSeats); 
             }
 
+            //flightId that user want to book 
             Console.WriteLine("Enter the flightId that you want to booked");
             int bookedFlightId = int.Parse(Console.ReadLine());
 
             Flight selectedFlight = context.Flights.FirstOrDefault(a => a.flightId == bookedFlightId);
+
             if (selectedFlight == null)
             {
                 Console.WriteLine("flight not found");
@@ -313,7 +323,7 @@ namespace Flight_Management_System03
             Console.WriteLine("Enter flightId that you would cancelled");
             int flightId = int.Parse(Console.ReadLine());
 
-            Flight selectedFlight = context.Flights.FirstOrDefault(a => a.flightId == flightId);
+            Flight selectedFlight = context.Flights.FirstOrDefault(a => a.flightId == flightId );
 
             if (selectedFlight == null)
             {
@@ -328,11 +338,12 @@ namespace Flight_Management_System03
         }
 
         //08 Depart a Flight
-        //display all flight with ststus =Scheduled
 
         public static void DepartFlight()
         {
+            //display all scheduled flights
             List<Flight> scheduledFlights = context.Flights.Where(a => a.status == "Scheduled").ToList();
+
             if (scheduledFlights.Count == 0)
             {
                 Console.WriteLine("There is no scheduled Flights");
@@ -343,23 +354,103 @@ namespace Flight_Management_System03
                 Console.WriteLine("flightId: "+ f.flightId);
                 Console.WriteLine("flightCode: " + f.flightCode);
             }
-            
+
+            //enter flight id from the  that will change the status to Departed
             Console.WriteLine("Enter flight Id to chance ststus");
-            int flightId = int.Parse(Console.ReadLine());
+            int enteredFlightId = int.Parse(Console.ReadLine());
 
-            Flight enteredFlightId = context.Flights.FirstOrDefault(d => d.flightId == flightId);
+            Flight selectededFlight = context.Flights.FirstOrDefault(d => d.flightId == enteredFlightId);
 
-            if (enteredFlightId == null)
+            if (selectededFlight == null)
             {
                 Console.WriteLine("invaled Flight Id");
                 return;
             }
-            enteredFlightId.status = "Departed";
+
+            //coniform that selected pilot is available and assign
+
+            Console.WriteLine("Enter Pilot Id");
+            int enteredPilotId = int.Parse(Console.ReadLine());
+
+            Pilot selectedPilot = context.Pilots.FirstOrDefault(x => x.pilotId == enteredPilotId && x.isAvailable==true);
+
+            if (selectedPilot == null)
+            {
+                Console.WriteLine("invaled Pilot Id");
+                return;
+            }
+
+            //pilot's total flight hours
+            selectedPilot.flightHours = selectedPilot.flightHours + selectededFlight.flightDuration;
+
+            //change the status
+            selectededFlight.status = "Departed";
+
+            Console.WriteLine("Flight departed successfully and pilot's total flight hours are updated");
 
 
         }
 
+        //09 Cancel a Flight
+        public static void CancelFlight()
+        {
+            //display the flights the user choose the flight id that he want to cancel flight 
 
+            List<Flight> diplayFlights = context.Flights.Where(x => x.status == "Scheduled").ToList();
+            if (diplayFlights.Count == 0)
+            {
+                Console.WriteLine("No flights has been scheduled yet");
+                return;
+            }
+
+            Console.WriteLine("Enter the flight ID that you want to cancel");
+            int enteredFlightId = int.Parse(Console.ReadLine());
+
+            Flight selectedFlightId = context.Flights.FirstOrDefault(x => x.flightId == enteredFlightId && x.status== "Scheduled");
+
+            if (selectedFlightId == null)
+            {
+                Console.WriteLine("invalied Flight Id");
+                return;
+            }
+            //change the status 
+            selectedFlightId.status = "Cancelled";
+
+            //change all assosiated bookings to cancelled
+            List<Booking> bookingList = context.Bookings.Where(b => b.status == "Confirmed" && b.flightId == enteredFlightId).ToList();
+            if (bookingList.Count == 0)
+            {
+                Console.WriteLine("No assosiated bookings reated to this flight id");
+                return;
+            }
+            //change the status for each booking in the list
+            foreach(Booking b in bookingList)
+            {
+                b.status = "Cancelled";
+                selectedFlightId.availableSeats++;
+
+
+            }
+            Console.WriteLine("All bookings are cancelled successfully");
+
+            // pilot that it is assosiated to that flight
+            Pilot selectedPilot = context.Pilots.FirstOrDefault(p => p.pilotId == selectedFlightId.pilotId);
+
+            if (selectedPilot == null)
+            {
+                Console.WriteLine("no pilot assosiated to that flight");
+                return;
+            }
+            selectedPilot.isAvailable = true;
+            Console.WriteLine("the pilot is available again");
+
+
+            //total
+            int affectedBookingsCount = bookingList.Count();
+            Console.WriteLine("Total affected Bookings = "+ affectedBookingsCount);
+
+
+        }
 
 
 

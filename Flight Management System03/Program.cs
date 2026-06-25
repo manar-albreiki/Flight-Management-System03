@@ -1,4 +1,6 @@
 ﻿using Flight_Management_System03.Models;
+using System.Numerics;
+using System.Security.Cryptography;
 using System.Threading.Channels;
 
 namespace Flight_Management_System03
@@ -452,6 +454,71 @@ namespace Flight_Management_System03
 
         }
 
+        //10 Passenger Booking History
+        public static void PassengerBookingHistory()
+        {
+            Console.WriteLine("Enter passenger ID that you want to see Booking History");
+            int enterPassengerId = int.Parse(Console.ReadLine());
+
+            Passenger selectedPassenger = context.Passengers.FirstOrDefault(p => p.passengerId == enterPassengerId);
+            if (selectedPassenger == null)
+            {
+                Console.WriteLine("Invalid passenger ID");
+                return;
+            }
+
+            List<Booking> displayBookings = context.Bookings.Where(b => b.passengerId == enterPassengerId).ToList();
+            if (displayBookings.Count == 0)
+            {
+                Console.WriteLine("No bookings found for this passenger.");
+                return;
+            }
+
+            decimal total = 0;
+
+            foreach (var booking in displayBookings)
+            {
+                Flight flight = context.Flights
+                    .FirstOrDefault(f => f.flightId == booking.flightId);
+
+                if (flight != null)
+                {
+                    Console.WriteLine("Flight Code: " + flight.flightCode);
+                    Console.WriteLine("Origin: " + flight.origin);
+                    Console.WriteLine("Destination: " + flight.destination);
+                    Console.WriteLine("Departure Date: " + flight.departureDate);
+                    Console.WriteLine("Seat Number: " + booking.seatNumber);
+                    Console.WriteLine("Price Paid: " + booking.totalPrice);
+                    Console.WriteLine("Booking Status: " + booking.status);
+                    
+                }
+
+                if (booking.status == "Confirmed")
+                {
+                    total += booking.totalPrice;
+                }
+            }
+
+            Console.WriteLine("Total Amount Spent (Confirmed only): " + total);
+
+
+
+        }
+
+        //11 Flight Revenue &Load Factor Report
+        public static void FlightReport()
+        {
+            var report = context.Flights.Select()
+
+
+
+
+        }
+
+
+
+
+
 
 
 
@@ -481,27 +548,27 @@ namespace Flight_Management_System03
 
                 switch (option)
                 {
-                    case 01:  break;
+                    case 01: RegisterPassenger();  break;
 
-                    case 02:  break;
+                    case 02: AddAircraft(); break;
 
-                    case 03:  break;
+                    case 03: RegisterPilot(); break;
 
-                    case 04:  break;
+                    case 04: ViewAllFlight(); break;
 
-                    case 05:  break;
+                    case 05: SchedulFlight();  break;
 
-                    case 06:  break;
+                    case 06: BookFlight();  break;
 
-                    case 07:  break;
+                    case 07: CancelBooking(); break;
 
-                    case 08:  break;
+                    case 08: DepartFlight();  break;
 
-                    case 09:  break;
+                    case 09: CancelFlight(); break;
 
-                    case 10:  break;
+                    case 10: PassengerBookingHistory(); break;
 
-                    case 11: break;
+                    case 11: FlightReport(); break;
 
                     case 0: exit = true; break;
 

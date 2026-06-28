@@ -357,7 +357,7 @@ namespace Flight_Management_System03
                 Console.WriteLine("flightCode: " + f.flightCode);
             }
 
-            //enter flight id from the  that will change the status to Departed
+            //enter flight id from the list , that will change the status to Departed
             Console.WriteLine("Enter flight Id to chance ststus");
             int enteredFlightId = int.Parse(Console.ReadLine());
 
@@ -371,16 +371,18 @@ namespace Flight_Management_System03
 
             //coniform that selected pilot is available and assign
 
-            Console.WriteLine("Enter Pilot Id");
-            int enteredPilotId = int.Parse(Console.ReadLine());
+            //Console.WriteLine("Enter Pilot Id");
+            //int enteredPilotId = int.Parse(Console.ReadLine());
 
-            Pilot selectedPilot = context.Pilots.FirstOrDefault(x => x.pilotId == enteredPilotId && x.isAvailable==true);
+            //Pilot selectedPilot = context.Pilots.FirstOrDefault(x => x.pilotId == enteredPilotId && x.isAvailable==true);
 
-            if (selectedPilot == null)
-            {
-                Console.WriteLine("invaled Pilot Id");
-                return;
-            }
+            //if (selectedPilot == null)
+            //{
+            //    Console.WriteLine("invaled Pilot Id");
+            //    return;
+            //}
+
+            Pilot selectedPilot = context.Pilots.FirstOrDefault(p => p.pilotId == selectededFlight.pilotId);
 
             //pilot's total flight hours
             selectedPilot.flightHours = selectedPilot.flightHours + selectededFlight.flightDuration;
@@ -457,7 +459,7 @@ namespace Flight_Management_System03
         //10 Passenger Booking History
         public static void PassengerBookingHistory()
         {
-            Console.WriteLine("Enter passenger ID that you want to see Booking History");
+            Console.WriteLine("Enter passenger ID that you want to see thier Booking History");
             int enterPassengerId = int.Parse(Console.ReadLine());
 
             Passenger selectedPassenger = context.Passengers.FirstOrDefault(p => p.passengerId == enterPassengerId);
@@ -476,22 +478,23 @@ namespace Flight_Management_System03
 
             decimal total = 0;
 
+            //passenger history
             foreach (var booking in displayBookings)
             {
-                Flight flight = context.Flights
-                    .FirstOrDefault(f => f.flightId == booking.flightId);
+                Flight flight = context.Flights.FirstOrDefault(f => f.flightId == booking.flightId);
 
-                if (flight != null)
+                if (flight == null)
                 {
-                    Console.WriteLine("Flight Code: " + flight.flightCode);
-                    Console.WriteLine("Origin: " + flight.origin);
-                    Console.WriteLine("Destination: " + flight.destination);
-                    Console.WriteLine("Departure Date: " + flight.departureDate);
-                    Console.WriteLine("Seat Number: " + booking.seatNumber);
-                    Console.WriteLine("Price Paid: " + booking.totalPrice);
-                    Console.WriteLine("Booking Status: " + booking.status);
-                    
+                    Console.WriteLine("passnger has no booking history yet");
+                    return;
                 }
+                Console.WriteLine("Flight Code: " + flight.flightCode);
+                Console.WriteLine("Origin: " + flight.origin);
+                Console.WriteLine("Destination: " + flight.destination);
+                Console.WriteLine("Departure Date: " + flight.departureDate);
+                Console.WriteLine("Seat Number: " + booking.seatNumber);
+                Console.WriteLine("Price Paid: " + booking.totalPrice);
+                Console.WriteLine("Booking Status: " + booking.status);
 
                 if (booking.status == "Confirmed")
                 {
@@ -508,7 +511,15 @@ namespace Flight_Management_System03
         //11 Flight Revenue &Load Factor Report
         public static void FlightReport()
         {
-            var report = context.Flights.Select()
+            var report = context.Flights.Select(f => new
+            {
+                FlightCode = f.flightCode,
+                Route = f.origin + " -> " + f.destination,
+                ConfirmedBookings = context.Bookings.Count(b => b.flightId == f.flightId && b.status == "Confirmed"),
+
+                totalRevenue = context.Bookings.Where(b => b.flightId == f.flightId && b.status == "Confirmed")
+                                              .Sum(b => b.totalPrice),
+            }
 
 
 
